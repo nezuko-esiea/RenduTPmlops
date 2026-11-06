@@ -1,2 +1,2 @@
-tensorflow
-mlflow
+tensorflow-cpu==2.18.0
+mlflow==2.22.0

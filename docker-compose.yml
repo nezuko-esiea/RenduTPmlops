@@ -1,22 +1,32 @@
-version: "3.9"
-
 services:
 
   # =========================
   # MLflow – Tracking serveur
   # =========================
   mlflow:
-    image: mlflow/mlflow:latest
+    image: ghcr.io/mlflow/mlflow:v2.22.0
     container_name: mlflow
     ports:
       - "5000:5000"
+    # Par défaut MLflow écrit dans /mlruns et /mlartifacts, hors du volume :
+    # ces deux options rangent ses données dans /mlflow, le dossier du volume.
+    #   --backend-store-uri     : runs, paramètres et métriques (base SQLite /mlflow/mlflow.db)
+    #   --artifacts-destination : fichiers des modèles (/mlflow/artifacts)
     command: >
       mlflow server
       --host 0.0.0.0
       --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/artifacts
     # TODO : ajouter un volume pour persister les données MLflow
-    # volumes:
-    #   - mlflow_data:/mlflow
+    volumes:
+      - mlflow_data:/mlflow
+    # MLflow est "healthy" quand sa route /health répond
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   # =========================
   # Entraînement du modèle
@@ -29,10 +39,13 @@ services:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - DATA_DIR=/data/knowledge
       # TODO : utiliser les variables du fichier .env
+      - EPOCHS=${EPOCHS}
+      - BATCH_SIZE=${BATCH_SIZE}
     volumes:
       - ./geometrie/knowledge:/data/knowledge:ro
     depends_on:
-      - mlflow
+      mlflow:
+        condition: service_healthy
     # Ce service est lancé manuellement
     profiles:
       - train
@@ -50,35 +63,36 @@ services:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - MODEL_NAME=geometrie-model
     depends_on:
-      - 
+      mlflow:
+        condition: service_healthy
 
   # =========================
   # Prometheus – Monitoring
   # =========================
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.55.1
     container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
-      - 
+      - api
 
   # =========================
   # Grafana – Visualisation
   # =========================
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.4.0
     container_name: grafana
     ports:
       - "3000:3000"
     # TODO (BONUS) : persister les dashboards
     depends_on:
-      - 
+      - prometheus
 
 # =========================
 # Volumes (optionnel TP 4h)
 # =========================
-# volumes:
-#   mlflow_data:
+volumes:
+  mlflow_data:

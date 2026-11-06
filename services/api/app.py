@@ -1,7 +1,7 @@
 import os
 import time
 import numpy as np
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from PIL import Image
 
 import mlflow
@@ -32,7 +32,11 @@ def load_model():
         # dernière version
         uri = f"models:/{MODEL_NAME}/latest"
 
-    model = mlflow.tensorflow.load_model(uri)
+    try:
+        model = mlflow.tensorflow.load_model(uri)
+    except Exception as exc:
+        # Pas encore de modèle enregistré : l'API démarre quand même
+        print(f"Modèle indisponible ({uri}) : {exc}")
 
 @app.on_event("startup")
 def startup():
@@ -54,6 +58,11 @@ def metrics():
 
 @app.post("/predict")
 def predict(file: UploadFile = File(...)):
+    if model is None:
+        load_model()  # le modèle a pu être enregistré depuis le démarrage
+    if model is None:
+        raise HTTPException(status_code=503, detail="Aucun modèle disponible")
+
     start = time.time()
     endpoint = "/predict"
     try:
