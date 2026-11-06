@@ -91,6 +91,11 @@ services:
     ports:
       - "3000:3000"
     # TODO (BONUS) : persister les dashboards
+    # La source Prometheus et le dashboard sont des fichiers du projet,
+    # rechargés à chaque démarrage de Grafana
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
 

@@ -1,0 +1,9 @@
+# Grafana charge au démarrage les dashboards JSON de ce dossier
+apiVersion: 1
+
+providers:
+  - name: "MLOps"
+    folder: "MLOps"
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
