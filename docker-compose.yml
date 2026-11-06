@@ -41,6 +41,7 @@ services:
       # TODO : utiliser les variables du fichier .env
       - EPOCHS=${EPOCHS}
       - BATCH_SIZE=${BATCH_SIZE}
+      - LEARNING_RATE=${LEARNING_RATE}
     volumes:
       - ./geometrie/knowledge:/data/knowledge:ro
     depends_on:
@@ -62,6 +63,8 @@ services:
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - MODEL_NAME=geometrie-model
+      # charge la version validée et passée en Production dans MLflow
+      - MODEL_STAGE=Production
     depends_on:
       mlflow:
         condition: service_healthy
