@@ -1,0 +1,101 @@
+apiVersion: v1
+data:
+  api-geometrie.json: |
+    {
+      "uid": "api-geometrie",
+      "title": "API Géométrie - Monitoring",
+      "schemaVersion": 39,
+      "refresh": "5s",
+      "time": { "from": "now-15m", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Requêtes de prédiction reçues (total)",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+          "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" } } },
+          "targets": [{ "refId": "A", "expr": "sum(http_requests_total)" }]
+        },
+        {
+          "id": 2,
+          "title": "Erreurs serveur (500)",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            }
+          },
+          "targets": [{ "refId": "A", "expr": "sum(http_requests_total{status=\"500\"}) or vector(0)" }]
+        },
+        {
+          "id": 3,
+          "title": "API joignable (1 = UP, 0 = DOWN)",
+          "type": "stat",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          },
+          "targets": [{ "refId": "A", "expr": "up{job=\"api-ml\"}" }]
+        },
+        {
+          "id": 4,
+          "title": "Requêtes par seconde",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 6 },
+          "fieldConfig": { "defaults": { "unit": "reqps" } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (status) (rate(http_requests_total[1m]))",
+              "legendFormat": "statut {{status}}"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Temps de réponse des prédictions",
+          "type": "timeseries",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 6 },
+          "fieldConfig": { "defaults": { "unit": "s" } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "rate(http_request_duration_seconds_sum[1m]) / rate(http_request_duration_seconds_count[1m])",
+              "legendFormat": "moyenne"
+            },
+            {
+              "refId": "B",
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le))",
+              "legendFormat": "p95"
+            }
+          ]
+        }
+      ]
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: grafana
+  name: grafana-cm1
