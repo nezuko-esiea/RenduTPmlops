@@ -1,0 +1,81 @@
+name: CI API Geometrie
+
+on:
+  push:
+
+jobs:
+  # Vérifie la syntaxe : compileall (erreurs Python) et ruff (imports inutilisés, noms indéfinis)
+  lint:
+    name: Syntaxe des fichiers Python
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer ruff
+        run: pip install ruff==0.6.9
+
+      - name: Vérifier la syntaxe
+        run: |
+          python -m compileall -q services tests
+          ruff check .
+  # Lance les tests de l'API, seulement si la syntaxe est correcte
+  test:
+    name: Tests de l'API
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: |
+          pip install -r services/api/requirements.txt
+          pip install pytest httpx
+
+      - name: Lancer les tests
+        run: pytest -v
+  
+  build:
+    name: Build de l'image Docker de l'API
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Construire l'image
+        run: docker build -t geometrie-api:${{ github.sha }} services/api
+  # Affiche le résultat de chaque job et échoue si l'un d'eux a échoué
+  resultat:
+    name: Résultat du pipeline
+    needs: [lint, test, build]
+    # s'exécute même si un job précédent a échoué
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Signaler la réussite ou l'échec
+        run: |
+          {
+            echo "## Résultat du pipeline"
+            echo "- Syntaxe : ${{ needs.lint.result }}"
+            echo "- Tests : ${{ needs.test.result }}"
+            echo "- Build Docker : ${{ needs.build.result }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ needs.build.result }}" = "success" ]; then
+            echo "Pipeline réussi"
+          else
+            echo "Pipeline en échec"
+            exit 1
+          fi

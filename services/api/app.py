@@ -6,7 +6,6 @@ from PIL import Image
 
 import mlflow
 import mlflow.tensorflow
-import tensorflow as tf
 
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
