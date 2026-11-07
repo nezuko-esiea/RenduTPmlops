@@ -17,14 +17,17 @@ Les images d'entraînement (`geometrie/knowledge`) et de test
 
 ## Lancer le projet avec Docker Compose
 
+Le premier lancement prend plusieurs minutes (construction des images et
+installation de TensorFlow).
+
 ```bash
-docker compose up -d --build
+docker compose up -d --build --wait
 docker compose run --rm --build -e EPOCHS=5 train
 docker compose run --rm -e EPOCHS=10 train
 docker compose run --rm register
 ```
 
-1. Démarre MLflow, l'API, Prometheus et Grafana.
+1. Démarre MLflow, l'API, Prometheus et Grafana, et attend que MLflow et l'API répondent.
 2. et 3. Entraînent le modèle sur 5 puis 10 époques ; chaque run est enregistré dans MLflow.
 4. Compare les runs, enregistre le meilleur modèle et le passe en Production.
 

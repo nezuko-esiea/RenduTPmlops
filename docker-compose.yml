@@ -21,7 +21,7 @@ services:
     # TODO : ajouter un volume pour persister les données MLflow
     volumes:
       - mlflow_data:/mlflow
-    # MLflow est "healthy" quand sa route /health répond
+    # Docker considère MLflow prêt (état "healthy") quand sa route /health répond
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
       interval: 10s
@@ -82,6 +82,13 @@ services:
     depends_on:
       mlflow:
         condition: service_healthy
+    # Docker considère l'API prête (état "healthy") quand sa route /health répond (TensorFlow met ~30 s à démarrer)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   # =========================
   # Prometheus – Monitoring
