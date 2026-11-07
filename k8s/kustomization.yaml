@@ -1,4 +1,8 @@
+# tous les objets du projet sont créés dans le namespace geometrie
+namespace: geometrie
+
 resources:
+  - namespace.yaml
   - mlflow-data-persistentvolumeclaim.yaml
   - mlflow-deployment.yaml
   - mlflow-service.yaml

@@ -37,17 +37,21 @@ spec:
               memory: "768Mi"
             limits:
               memory: "1536Mi"
-          # TensorFlow met une vingtaine de secondes à démarrer
+          # laisse jusqu'à 5 minutes au démarrage (TensorFlow + attente de MLflow)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /health
               port: 8000
-            initialDelaySeconds: 60
             periodSeconds: 10
             failureThreshold: 3

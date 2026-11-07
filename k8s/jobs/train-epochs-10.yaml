@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: train-epochs-10
+  namespace: geometrie
   labels:
     app: geometrie
     tier: train
