@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: register
+  labels:
+    app: geometrie
+    tier: register
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: geometrie
+        tier: register
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: register
+          image: rattrapagedevops-train:latest
+          imagePullPolicy: Never
+          command: ["python", "register_best.py"]
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            - name: MODEL_NAME
+              value: geometrie-model

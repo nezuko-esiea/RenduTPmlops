@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: train-epochs-5
+  labels:
+    app: geometrie
+    tier: train
+spec:
+  # nouvelles tentatives si MLflow n'est pas encore prêt
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: geometrie
+        tier: train
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: train
+          image: rattrapagedevops-train:latest
+          imagePullPolicy: Never
+          env:
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            - name: DATA_DIR
+              value: /data/knowledge
+            - name: EPOCHS
+              value: "5"
+            - name: BATCH_SIZE
+              value: "32"
+            - name: LEARNING_RATE
+              value: "0.01"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: knowledge
+              mountPath: /data/knowledge
+              readOnly: true
+      volumes:
+        # dossier geometrie/knowledge monté dans minikube (minikube mount)
+        - name: knowledge
+          hostPath:
+            path: /data/knowledge
+            type: Directory

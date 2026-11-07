@@ -97,5 +97,6 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    io.kompose.service: grafana
+    app: geometrie
+    tier: grafana
   name: grafana-cm1

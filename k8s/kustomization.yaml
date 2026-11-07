@@ -1,0 +1,13 @@
+resources:
+  - mlflow-data-persistentvolumeclaim.yaml
+  - mlflow-deployment.yaml
+  - mlflow-service.yaml
+  - api-deployment.yaml
+  - api-service.yaml
+  - prometheus-cm0-configmap.yaml
+  - prometheus-deployment.yaml
+  - prometheus-service.yaml
+  - grafana-provisioning-configmap.yaml
+  - grafana-cm1-configmap.yaml
+  - grafana-deployment.yaml
+  - grafana-service.yaml

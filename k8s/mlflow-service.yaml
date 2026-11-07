@@ -1,16 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe convert -f docker-compose.yml -o k8s/
-    kompose.version: 1.38.0 (a8f5d1cbd)
-  labels:
-    io.kompose.service: mlflow
   name: mlflow
+  labels:
+    app: geometrie
+    tier: mlflow
 spec:
+  type: ClusterIP
   ports:
-    - name: "5000"
-      port: 5000
+    - port: 5000
       targetPort: 5000
   selector:
-    io.kompose.service: mlflow
+    app: geometrie
+    tier: mlflow

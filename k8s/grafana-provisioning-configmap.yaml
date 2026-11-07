@@ -1,0 +1,28 @@
+# Ignoré par kompose : source Prometheus et chargement du dashboard au démarrage de Grafana
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  labels:
+    app: geometrie
+    tier: grafana
+data:
+  datasource.yml: |
+    apiVersion: 1
+
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+  dashboards.yml: |
+    apiVersion: 1
+
+    providers:
+      - name: "MLOps"
+        folder: "MLOps"
+        type: file
+        options:
+          path: /var/lib/grafana/dashboards
