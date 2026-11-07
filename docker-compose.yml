@@ -51,6 +51,20 @@ services:
     profiles:
       - train
 
+  # Compare les runs et passe le meilleur modèle en Production (lancé après les entraînements)
+  register:
+    build: ./services/train
+    container_name: register
+    command: ["python", "register_best.py"]
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_NAME=geometrie-model
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    profiles:
+      - train
+
   # =========================
   # API d’inférence
   # =========================
